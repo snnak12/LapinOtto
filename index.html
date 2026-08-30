@@ -312,9 +312,13 @@
     Bu web arayüz Robotik Kodlama öğretmeni Hakan KOÇ tarafından yapılmıştır.
   </footer>
 
+  <!-- Smooth Criminal Ses Dosyası -->
+  <audio id="audioSmooth" src="smooth.mp3" preload="auto"></audio>
+
   <script>
     let port = null;
     let writer = null;
+    const smoothAudio = document.getElementById("audioSmooth");
 
     // Web Serial üzerinden Sanal Bluetooth COM Portuna Bağlanma
     async function baglantiKur() {
@@ -339,7 +343,7 @@
       }
     }
 
-    // Robota Komut Gönderme Fonksiyonu
+    // Robota Komut Gönderme ve Müzik Yönetim Fonksiyonu
     async function komutGonder(anahtar) {
       if (!writer) {
         alert("Lütfen önce sağ üstteki Bluetooth simgesine basarak robota bağlanın.");
@@ -347,6 +351,15 @@
       }
 
       try {
+        // Müzik Kontrolü: smoothCriminal seçildiğinde başlat, başka bir butonda durdur
+        if (anahtar === 'smoothCriminal') {
+          smoothAudio.currentTime = 0;
+          smoothAudio.play().catch(e => console.log("Ses oynatma engeli:", e));
+        } else {
+          smoothAudio.pause();
+          smoothAudio.currentTime = 0;
+        }
+
         // Arduino kodundaki move_speed[n] hız indeksini komutun sonuna ekler
         const secilenHiz = document.getElementById('speedRange').value;
         const paket = anahtar + secilenHiz + "\n";
