@@ -5,374 +5,410 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Otto Robot Kontrol Paneli</title>
   <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       user-select: none;
       -webkit-user-select: none;
     }
 
     body {
-      background-color: #0c376a;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 15px;
       min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      gap: 16px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .status-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
       justify-content: space-between;
-      position: relative;
-      overflow-x: hidden;
-      padding: 20px 10px;
+      align-items: center;
+      border: 1px solid #334155;
     }
 
-    /* Üst Köşe Düğmeleri */
-    .top-btn {
-      position: absolute;
-      top: 20px;
-      width: 52px;
-      height: 52px;
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.95);
+      background-color: var(--danger);
+    }
+
+    .dot.connected {
+      background-color: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    button {
       border: none;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      outline: none;
+      border-radius: 10px;
+      font-weight: 600;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      z-index: 10;
-    }
-
-    .top-btn:hover {
-      transform: scale(1.08);
-    }
-
-    .btn-help {
-      left: 20px;
-      font-size: 26px;
-      font-weight: 800;
-      color: #0c376a;
-    }
-
-    .btn-bluetooth {
-      right: 20px;
-    }
-
-    .btn-bluetooth svg {
-      width: 26px;
-      height: 26px;
-      fill: #0c376a;
-      transition: fill 0.3s ease;
-    }
-
-    .btn-bluetooth.connected {
-      background: #2ecc71;
-    }
-
-    .btn-bluetooth.connected svg {
-      fill: #ffffff;
-    }
-
-    /* Ana Kontrol Konteynırı */
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-top: 35px;
-      gap: 18px;
-    }
-
-    /* Yön Kontrol Alanı (Joystick) */
-    .joystick-container {
-      display: grid;
-      grid-template-columns: repeat(3, 68px);
-      grid-template-rows: repeat(3, 68px);
-      gap: 12px;
-      align-items: center;
-      justify-items: center;
-    }
-
-    .btn-arrow {
-      width: 68px;
-      height: 68px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: none;
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       transition: all 0.15s ease;
+      touch-action: manipulation;
     }
 
-    .btn-arrow svg {
-      width: 32px;
-      height: 32px;
-      fill: #0c376a;
+    .btn-connect {
+      background-color: var(--accent);
+      color: #0f172a;
+      padding: 8px 16px;
+      font-size: 0.85rem;
     }
 
-    .btn-arrow:active {
-      transform: scale(0.92);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    .btn-connect:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 5px 0 2px 5px;
+    }
+
+    /* Yön Kumandası Grid */
+    .d-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      background-color: var(--card-bg);
+      padding: 15px;
+      border-radius: 16px;
+      border: 1px solid #334155;
+    }
+
+    .btn-move {
+      background-color: #334155;
+      color: var(--text);
+      aspect-ratio: 1;
+      font-size: 1.4rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-move:active {
+      background-color: var(--accent);
+      color: #0f172a;
+      transform: scale(0.96);
     }
 
     .btn-stop {
-      width: 60px;
-      height: 60px;
-      background: #e74c3c;
-      border-radius: 14px;
-      border: none;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease;
-    }
-
-    .btn-stop-inner {
-      width: 22px;
-      height: 22px;
-      background: #ffffff;
-      border-radius: 4px;
+      background-color: var(--danger);
+      color: white;
+      font-size: 0.9rem;
     }
 
     .btn-stop:active {
-      transform: scale(0.92);
+      background-color: #b91c1c;
+      transform: scale(0.96);
     }
 
-    .pos-up { grid-column: 2; grid-row: 1; }
-    .pos-left { grid-column: 1; grid-row: 2; }
-    .pos-stop { grid-column: 2; grid-row: 2; }
-    .pos-right { grid-column: 3; grid-row: 2; }
-    .pos-down { grid-column: 2; grid-row: 3; }
-
-    /* Hız Ayarı Çubuğu */
-    .speed-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #ffffff;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .speed-slider {
-      -webkit-appearance: none;
-      width: 140px;
-      height: 8px;
-      border-radius: 5px;
-      background: rgba(255, 255, 255, 0.3);
-      outline: none;
-    }
-
-    .speed-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #00d2d3;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-
-    /* Düğme Grupları */
-    .actions-wrapper {
+    /* Dans Menüsü */
+    .dance-grid {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      align-items: center;
-      max-width: 900px;
     }
 
-    .button-group {
+    .btn-dance {
+      background: linear-gradient(135deg, #1e293b, #334155);
+      border: 1px solid #475569;
+      color: var(--text);
+      padding: 14px;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 6px;
+      align-items: center;
+      justify-content: space-between;
       border-radius: 12px;
-      gap: 5px;
-      backdrop-filter: blur(6px);
     }
 
-    .btn-action {
-      border: none;
-      padding: 9px 14px;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 13.5px;
-      font-weight: 600;
-      cursor: pointer;
+    .btn-dance:active, .btn-dance.playing {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, #0369a1, #0284c7);
+      transform: scale(0.98);
+    }
+
+    .dance-info {
       display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
+    .dance-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .dance-artist {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .dance-icon {
+      font-size: 1.2rem;
+    }
+
+    /* Mimikler & Jestler */
+    .gestures-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .btn-gesture {
+      background-color: var(--card-bg);
+      border: 1px solid #334155;
+      color: var(--text);
+      padding: 10px 4px;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 7px;
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-      transition: all 0.15s ease;
+      gap: 4px;
     }
 
-    .btn-action:active {
-      transform: translateY(2px);
-    }
-
-    /* Renk Kodları */
-    .btn-mutlu { background-color: #3b71ca; }
-    .btn-galibiyet { background-color: #28a745; }
-    .btn-huzunlu { background-color: #17a2b8; }
-    .btn-uykulu { background-color: #e67e22; }
-    .btn-karismis { background-color: #e056fd; }
-    .btn-hatali { background-color: #6c757d; }
-    .btn-gazli { background-color: #dfe6e9; color: #2d3436; }
-    
-    .btn-moonwalk { background-color: #8e44ad; }
-    .btn-smooth { background-color: #2c3e50; }
-    .btn-mode { background-color: #d35400; }
-
-    /* Alt Bilgi İmzası */
-    .footer-text {
-      color: rgba(255, 255, 255, 0.85);
-      font-size: 13px;
-      font-weight: 500;
-      text-align: center;
-      padding: 15px 10px 5px 10px;
-      letter-spacing: 0.3px;
+    .btn-gesture:active {
+      background-color: var(--accent);
+      color: #0f172a;
     }
   </style>
 </head>
 <body>
 
-  <!-- Sol Üst Yardım Butonu -->
-  <button class="top-btn btn-help" onclick="yardimGoster()">?</button>
+  <div class="container">
+    <div class="header">
+      <h1>OTTO ROBOT</h1>
+    </div>
 
-  <!-- Sağ Üst Bağlantı Butonu -->
-  <button id="btBtn" class="top-btn btn-bluetooth" onclick="baglantiKur()" title="Bluetooth HC-05'e Bağlan">
-    <svg viewBox="0 0 24 24">
-      <path d="M14.88 16.29L13 18.17V14.41M13 5.83l1.88 1.88-1.88 1.88M7 7.07L12 12l-5 4.93 1.41 1.41L13 13.83v7.17l4.29-4.29-3.29-3.29 3.29-3.29L13 6V-1.17L8.41 3.41 7 4.83l5 5-5-5-1.41 1.41z"/>
-      <path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/>
-    </svg>
-  </button>
+    <!-- Bağlantı Alanı -->
+    <div class="status-card">
+      <div class="status-indicator">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Bağlantı Yok</span>
+      </div>
+      <button class="btn-connect" id="btnConnect" onclick="toggleConnect()">Bağlan</button>
+    </div>
 
-  <div class="main-content">
-    <!-- Yön Tuşları -->
-    <div class="joystick-container">
-      <button class="btn-arrow pos-up" onclick="komutGonder('forward')">
-        <svg viewBox="0 0 24 24"><path d="M12 4l-8 8h6v8h4v-8h6z"/></svg>
+    <!-- Yön Kumandası -->
+    <div class="section-title">Manuel Sürüş</div>
+    <div class="d-pad">
+      <div></div>
+      <button class="btn-move" onpointerdown="sendCommand('forward')" onpointerup="sendCommand('stop')">▲</button>
+      <div></div>
+
+      <button class="btn-move" onpointerdown="sendCommand('left')" onpointerup="sendCommand('stop')">◀</button>
+      <button class="btn-move btn-stop" onclick="stopAll()">DUR</button>
+      <button class="btn-move" onpointerdown="sendCommand('right')" onpointerup="sendCommand('stop')">▶</button>
+
+      <div></div>
+      <button class="btn-move" onpointerdown="sendCommand('backward')" onpointerup="sendCommand('stop')">▼</button>
+      <div></div>
+    </div>
+
+    <!-- Müzikli Koreografiler -->
+    <div class="section-title">Müzikli Danslar</div>
+    <div class="dance-grid">
+      <!-- Smooth Criminal -->
+      <button class="btn-dance" id="btn-smooth" onclick="playChoreography('smoothCriminal', 'audio-smooth', this)">
+        <div class="dance-info">
+          <span class="dance-title">Smooth Criminal</span>
+          <span class="dance-artist">Michael Jackson (121 BPM)</span>
+        </div>
+        <span class="dance-icon">🎩</span>
       </button>
-      <button class="btn-arrow pos-left" onclick="komutGonder('left')">
-        <svg viewBox="0 0 24 24"><path d="M4 12l8-8v6h8v4h-8v6z"/></svg>
+
+      <!-- Party Rock (Shuffle) -->
+      <button class="btn-dance" id="btn-shuffle" onclick="playChoreography('shuffle', 'audio-shuffle', this)">
+        <div class="dance-info">
+          <span class="dance-title">Party Rock Shuffle</span>
+          <span class="dance-artist">LMFAO (130 BPM)</span>
+        </div>
+        <span class="dance-icon">👟</span>
       </button>
-      <button class="btn-stop pos-stop" onclick="komutGonder('stop')">
-        <div class="btn-stop-inner"></div>
-      </button>
-      <button class="btn-arrow pos-right" onclick="komutGonder('right')">
-        <svg viewBox="0 0 24 24"><path d="M20 12l-8-8v6H4v4h8v6z"/></svg>
-      </button>
-      <button class="btn-arrow pos-down" onclick="komutGonder('backward')">
-        <svg viewBox="0 0 24 24"><path d="M12 20l8-8h-6V4h-4v8H4z"/></svg>
+
+      <!-- Single Ladies -->
+      <button class="btn-dance" id="btn-single" onclick="playChoreography('singleLadies', 'audio-single', this)">
+        <div class="dance-info">
+          <span class="dance-title">Single Ladies</span>
+          <span class="dance-artist">Beyoncé (97 BPM)</span>
+        </div>
+        <span class="dance-icon">💍</span>
       </button>
     </div>
 
-    <!-- Hız Kontrolü -->
-    <div class="speed-container">
-      <span>Hız Ayarı</span>
-      <input type="range" id="speedRange" class="speed-slider" min="0" max="5" value="2">
-      <span>🔧</span>
-    </div>
-
-    <!-- Komut Grupları -->
-    <div class="actions-wrapper">
-      <!-- Duygular -->
-      <div class="button-group">
-        <button class="btn-action btn-mutlu" onclick="komutGonder('happy')"><span>😊</span> Mutlu</button>
-        <button class="btn-action btn-galibiyet" onclick="komutGonder('victory')"><span>😃</span> Galibiyet</button>
-        <button class="btn-action btn-huzunlu" onclick="komutGonder('sad')"><span>😭</span> Hüzünlü</button>
-        <button class="btn-action btn-uykulu" onclick="komutGonder('sleeping')"><span>😴</span> Uykulu</button>
-        <button class="btn-action btn-karismis" onclick="komutGonder('confused')"><span>😕</span> Kafası Karışmış</button>
-        <button class="btn-action btn-hatali" onclick="komutGonder('fail')"><span>😬</span> Hatalı</button>
-        <button class="btn-action btn-gazli" onclick="komutGonder('fart')"><span>💨</span> Gazlı</button>
-      </div>
-
-      <!-- Danslar ve Otonom Modlar -->
-      <div class="button-group">
-        <button class="btn-action btn-moonwalk" onclick="komutGonder('moonwalkLeft')"><span>🕺</span> MoonWalk Sol</button>
-        <button class="btn-action btn-moonwalk" onclick="komutGonder('moonwalkRight')"><span>💃</span> MoonWalk Sağ</button>
-        <button class="btn-action btn-smooth" onclick="komutGonder('smoothCriminal')"><span>🎩</span> SmoothCriminal</button>
-        <button class="btn-action btn-mode" onclick="komutGonder('avoidance')"><span>🛡️</span> Engellerden Kaç</button>
-        <button class="btn-action btn-mode" onclick="komutGonder('force')"><span>✋</span> El Takip (Force)</button>
-      </div>
+    <!-- Hızlı Jestler -->
+    <div class="section-title">Jestler & Modlar</div>
+    <div class="gestures-grid">
+      <button class="btn-gesture" onclick="sendCommand('happy')"><span>😊</span>Mutlu</button>
+      <button class="btn-gesture" onclick="sendCommand('sad')"><span>😢</span>Üzgün</button>
+      <button class="btn-gesture" onclick="sendCommand('victory')"><span>✌️</span>Zafer</button>
+      <button class="btn-gesture" onclick="sendCommand('avoidance')"><span>🛡️</span>Otonom</button>
     </div>
   </div>
 
-  <!-- Alt Bilgi / İsim İmza -->
-  <footer class="footer-text">
-    Bu web arayüz Robotik Kodlama öğretmeni Hakan KOÇ tarafından yapılmıştır.
-  </footer>
-
-  <!-- Smooth Criminal Ses Dosyası -->
-  <audio id="audioSmooth" src="smooth.MP3" preload="auto"></audio>
+  <!-- Ses Dosyaları -->
+  <!-- Kendi mp3 dosyalarınızı bu HTML dosyasıyla aynı klasöre koyup isimleri eşitleyebilirsiniz -->
+  <audio id="audio-smooth" src="smooth_criminal.mp3" preload="auto"></audio>
+  <audio id="audio-shuffle" src="party_rock.mp3" preload="auto"></audio>
+  <audio id="audio-single" src="single_ladies.mp3" preload="auto"></audio>
 
   <script>
-    let port = null;
-    let writer = null;
-    const smoothAudio = document.getElementById("audioSmooth");
+    let bluetoothDevice = null;
+    let rxTxCharacteristic = null;
+    let currentAudio = null;
+    let activeDanceButton = null;
 
-    // Web Serial üzerinden Sanal Bluetooth COM Portuna Bağlanma
-    async function baglantiKur() {
-      if (!("serial" in navigator)) {
-        alert("Tarayıcınız Web Serial API desteklemiyor. Lütfen Google Chrome veya Microsoft Edge kullanın.");
+    // Standart BLE Nordic UART Servisleri (HM-10, ESP32 BLE vb.)
+    const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+    const UART_TX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
+    async function toggleConnect() {
+      if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+        bluetoothDevice.gatt.disconnect();
         return;
       }
 
       try {
-        port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 9600 });
+        updateStatus("Bağlanıyor...", false);
+        bluetoothDevice = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [UART_SERVICE_UUID, "0000ffe0-0000-1000-8000-00805f9b34fb"]
+        });
 
-        const textEncoder = new TextEncoderStream();
-        textEncoder.readable.pipeTo(port.writable);
-        writer = textEncoder.writable.getWriter();
-
-        document.getElementById('btBtn').classList.add('connected');
-        alert("HC-05 Robot bağlantısı başarıyla kuruldu!");
-      } catch (err) {
-        console.error("Bağlantı Hatası:", err);
-        alert("Bağlantı kurulamadı veya iptal edildi.");
-      }
-    }
-
-    // Robota Komut Gönderme ve Müzik Yönetim Fonksiyonu
-    async function komutGonder(anahtar) {
-      if (!writer) {
-        alert("Lütfen önce sağ üstteki Bluetooth simgesine basarak robota bağlanın.");
-        return;
-      }
-
-      try {
-        // Müzik Kontrolü: smoothCriminal seçildiğinde başlat, başka bir butonda durdur
-        if (anahtar === 'smoothCriminal') {
-          smoothAudio.currentTime = 0;
-          smoothAudio.play().catch(e => console.log("Ses oynatma engeli:", e));
-        } else {
-          smoothAudio.pause();
-          smoothAudio.currentTime = 0;
+        bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+        const server = await bluetoothDevice.gatt.connect();
+        
+        let service;
+        try {
+          service = await server.getPrimaryService(UART_SERVICE_UUID);
+          rxTxCharacteristic = await service.getCharacteristic(UART_TX_UUID);
+        } catch(e) {
+          // Alternatif HC-08 / HM-10 UUID
+          service = await server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
+          rxTxCharacteristic = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
         }
 
-        // Arduino kodundaki move_speed[n] hız indeksini komutun sonuna ekler
-        const secilenHiz = document.getElementById('speedRange').value;
-        const paket = anahtar + secilenHiz + "\n";
-        
-        await writer.write(paket);
-        console.log("Gönderilen Veri:", paket.trim());
-      } catch (err) {
-        console.error("Veri Gönderme Hatası:", err);
+        updateStatus("Bağlandı", true);
+        document.getElementById('btnConnect').innerText = "Kopart";
+      } catch (error) {
+        console.log("Bağlantı hatası: " + error);
+        updateStatus("Bağlantı Hatası", false);
       }
     }
 
-    function yardimGoster() {
-      alert("Kullanım Rehberi:\n1. Bilgisayarınızın Bluetooth menüsünden HC-05 robotu eşleştirin (Şifre: 1234 veya 0000).\n2. Sağ üstteki Bluetooth butonuna tıklayıp listeden sanal COM portunu seçin.\n3. Butonları ve Hız Ayarını kullanarak robotunuzu kablosuz olarak yönetin.");
+    function onDisconnected() {
+      updateStatus("Bağlantı Kesildi", false);
+      document.getElementById('btnConnect').innerText = "Bağlan";
+      rxTxCharacteristic = null;
+      stopMusic();
+    }
+
+    function updateStatus(text, isConnected) {
+      document.getElementById('statusText').innerText = text;
+      const dot = document.getElementById('statusDot');
+      if (isConnected) dot.classList.add('connected');
+      else dot.classList.remove('connected');
+    }
+
+    async function sendCommand(cmd) {
+      console.log("Komut:", cmd);
+      if (!rxTxCharacteristic) return;
+      try {
+        const encoder = new TextEncoder();
+        await rxTxCharacteristic.writeValue(encoder.encode(cmd + "\n"));
+      } catch (err) {
+        console.error("Yazma Hatası:", err);
+      }
+    }
+
+    // Müzikli Dans Yürütücü
+    function playChoreography(cmd, audioId, btnElement) {
+      stopMusic();
+
+      // Müziği çal
+      currentAudio = document.getElementById(audioId);
+      if (currentAudio) {
+        currentAudio.currentTime = 0;
+        currentAudio.play().catch(e => console.log("Otomatik oynatma kısıtlandı:", e));
+      }
+
+      // Buton stili
+      activeDanceButton = btnElement;
+      activeDanceButton.classList.add('playing');
+
+      // Robota komutu gönder
+      sendCommand(cmd);
+
+      // Şarkı bitince temizle
+      currentAudio.onended = () => {
+        stopAll();
+      };
+    }
+
+    function stopMusic() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+      }
+      if (activeDanceButton) {
+        activeDanceButton.classList.remove('playing');
+        activeDanceButton = null;
+      }
+    }
+
+    function stopAll() {
+      stopMusic();
+      sendCommand('stop');
     }
   </script>
 </body>
