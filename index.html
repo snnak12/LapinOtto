@@ -343,39 +343,37 @@
       }
     }
 
-    // Robota Komut Gönderme ve Müzik Yönetim Fonksiyonu
-// Robota Komut Gönderme ve Müzik Yönetim Fonksiyonu
+ let isSending = false;
+
 async function komutGonder(anahtar) {
-  // 1. Önce ses kontrolü (Kullanıcı tıklaması doğrudan sesi tetikler)
+  // Müzik Kontrolü
   if (anahtar === 'smoothCriminal') {
     smoothAudio.currentTime = 0;
-    const playPromise = smoothAudio.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.error("Müzik Çalma Hatası:", error);
-        alert("Müzik çalınamadı. Hata: " + error.message + "\n\nLütfen 'smooth.mp3' dosyasının GitHub ana dizininde olduğundan emin olun.");
-      });
-    }
+    smoothAudio.play().catch(e => console.log(e));
   } else {
     smoothAudio.pause();
     smoothAudio.currentTime = 0;
   }
 
-  // 2. Bluetooth Seri Port Kontrolü
   if (!writer) {
-    // Müzik çalmaya başlasa bile Bluetooth bağlı değilse uyarır
-    alert("Robot bağlı değil! Lütfen önce sağ üstteki Bluetooth simgesine tıklayıp robota bağlanın.");
+    alert("Lütfen önce Bluetooth simgesine basarak robota bağlanın.");
     return;
   }
 
+  if (isSending) return; // Önceki veri yazımı bitmeden yenisini göndermeyi engeller
+  isSending = true;
+
   try {
     const secilenHiz = document.getElementById('speedRange').value;
+    // Paketin başına ve sonuna temiz satır başı ekleyerek Arduino tarafında net ayrılmasını sağlar
     const paket = anahtar + secilenHiz + "\n";
+    
     await writer.write(paket);
-    console.log("Gönderilen Veri:", paket.trim());
+    console.log("Başarıyla Gönderildi:", paket.trim());
   } catch (err) {
     console.error("Veri Gönderme Hatası:", err);
+  } finally {
+    isSending = false;
   }
 }
 
