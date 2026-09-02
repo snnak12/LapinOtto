@@ -3,83 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Otto Robot Kontrol Paneli</title>
+  <title>Otto Robot - Dans ve Kontrol</title>
   <style>
     :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
+      --bg: #0f172a;
+      --card: #1e293b;
       --accent: #38bdf8;
       --accent-hover: #0284c7;
       --danger: #ef4444;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --text: #ffffff;
+      --text-dim: #94a3b8;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: sans-serif;
       user-select: none;
       -webkit-user-select: none;
     }
 
     body {
-      background-color: var(--bg-color);
+      background-color: var(--bg);
       color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 15px;
+      padding: 15px;
       min-height: 100vh;
     }
 
     .container {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
-    .header {
+    h1 {
       text-align: center;
+      font-size: 1.4rem;
+      color: var(--accent);
       margin-bottom: 5px;
     }
 
-    .header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .status-card {
-      background-color: var(--card-bg);
+    .card {
+      background: var(--card);
       border-radius: 12px;
       padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       border: 1px solid #334155;
     }
 
-    .status-indicator {
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-badge {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 0.9rem;
-      color: var(--text-muted);
+      color: var(--text-dim);
     }
 
     .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background-color: var(--danger);
+      background: var(--danger);
     }
 
-    .dot.connected {
-      background-color: #22c55e;
+    .dot.on {
+      background: #22c55e;
       box-shadow: 0 0 8px #22c55e;
     }
 
@@ -87,127 +86,113 @@
       border: none;
       outline: none;
       border-radius: 10px;
-      font-weight: 600;
+      font-weight: bold;
       cursor: pointer;
-      transition: all 0.15s ease;
       touch-action: manipulation;
     }
 
     .btn-connect {
-      background-color: var(--accent);
+      background: var(--accent);
       color: #0f172a;
       padding: 8px 16px;
       font-size: 0.85rem;
     }
 
-    .btn-connect:hover {
-      background-color: var(--accent-hover);
-    }
-
-    .section-title {
+    .label {
       font-size: 0.8rem;
+      color: var(--text-dim);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin: 5px 0 2px 5px;
+      letter-spacing: 0.5px;
+      margin-left: 4px;
     }
 
-    /* Yön Kumandası Grid */
-    .d-pad {
+    /* Yön Tuşları */
+    .dpad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      background-color: var(--card-bg);
-      padding: 15px;
-      border-radius: 16px;
+      gap: 8px;
+      background: var(--card);
+      padding: 12px;
+      border-radius: 14px;
       border: 1px solid #334155;
     }
 
-    .btn-move {
-      background-color: #334155;
-      color: var(--text);
+    .btn-dir {
+      background: #334155;
+      color: #fff;
       aspect-ratio: 1;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       display: flex;
       justify-content: center;
       align-items: center;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-move:active {
-      background-color: var(--accent);
-      color: #0f172a;
-      transform: scale(0.96);
+    .btn-dir:active {
+      background: var(--accent);
+      color: #000;
     }
 
     .btn-stop {
-      background-color: var(--danger);
-      color: white;
+      background: var(--danger);
+      color: #fff;
       font-size: 0.9rem;
     }
 
     .btn-stop:active {
-      background-color: #b91c1c;
-      transform: scale(0.96);
+      background: #b91c1c;
     }
 
-    /* Dans Menüsü */
-    .dance-grid {
+    /* Dans Butonları - Büyük ve Görünür */
+    .dance-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
     .btn-dance {
-      background: linear-gradient(135deg, #1e293b, #334155);
-      border: 1px solid #475569;
-      color: var(--text);
-      padding: 14px;
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      color: #fff;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-radius: 12px;
+      text-align: left;
     }
 
     .btn-dance:active, .btn-dance.playing {
-      border-color: var(--accent);
-      background: linear-gradient(135deg, #0369a1, #0284c7);
+      background: #0284c7;
+      border-color: #7dd3fc;
       transform: scale(0.98);
     }
 
-    .dance-info {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 2px;
-    }
-
     .dance-title {
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-size: 1rem;
+      color: #fff;
     }
 
-    .dance-artist {
+    .dance-sub {
       font-size: 0.75rem;
-      color: var(--text-muted);
+      color: var(--text-dim);
+      margin-top: 2px;
     }
 
     .dance-icon {
-      font-size: 1.2rem;
+      font-size: 1.4rem;
     }
 
-    /* Mimikler & Jestler */
-    .gestures-grid {
+    /* Jestler */
+    .gesture-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
     }
 
-    .btn-gesture {
-      background-color: var(--card-bg);
+    .btn-ges {
+      background: var(--card);
       border: 1px solid #334155;
-      color: var(--text);
+      color: #fff;
       padding: 10px 4px;
       font-size: 0.8rem;
       display: flex;
@@ -216,199 +201,237 @@
       gap: 4px;
     }
 
-    .btn-gesture:active {
-      background-color: var(--accent);
-      color: #0f172a;
+    .btn-ges:active {
+      background: var(--accent);
+      color: #000;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <div class="header">
-      <h1>OTTO ROBOT</h1>
-    </div>
+    <h1>OTTO ROBOT PANELİ</h1>
 
-    <!-- Bağlantı Alanı -->
-    <div class="status-card">
-      <div class="status-indicator">
-        <span class="dot" id="statusDot"></span>
-        <span id="statusText">Bağlantı Yok</span>
+    <!-- Bağlantı -->
+    <div class="card status-row">
+      <div class="status-badge">
+        <span class="dot" id="dot"></span>
+        <span id="statusTxt">Bağlantı Yok</span>
       </div>
-      <button class="btn-connect" id="btnConnect" onclick="toggleConnect()">Bağlan</button>
+      <button class="btn-connect" id="btnConnect" onclick="toggleBT()">Bağlan</button>
     </div>
 
-    <!-- Yön Kumandası -->
-    <div class="section-title">Manuel Sürüş</div>
-    <div class="d-pad">
+    <!-- Sürüş Kumandası -->
+    <span class="label">Sürüş Kontrolü</span>
+    <div class="dpad">
       <div></div>
-      <button class="btn-move" onpointerdown="sendCommand('forward')" onpointerup="sendCommand('stop')">▲</button>
+      <button class="btn-dir" onpointerdown="send('forward')" onpointerup="send('stop')">▲</button>
       <div></div>
 
-      <button class="btn-move" onpointerdown="sendCommand('left')" onpointerup="sendCommand('stop')">◀</button>
-      <button class="btn-move btn-stop" onclick="stopAll()">DUR</button>
-      <button class="btn-move" onpointerdown="sendCommand('right')" onpointerup="sendCommand('stop')">▶</button>
+      <button class="btn-dir" onpointerdown="send('left')" onpointerup="send('stop')">◀</button>
+      <button class="btn-dir btn-stop" onclick="stopAll()">DUR</button>
+      <button class="btn-dir" onpointerdown="send('right')" onpointerup="send('stop')">▶</button>
 
       <div></div>
-      <button class="btn-move" onpointerdown="sendCommand('backward')" onpointerup="sendCommand('stop')">▼</button>
+      <button class="btn-dir" onpointerdown="send('backward')" onpointerup="send('stop')">▼</button>
       <div></div>
     </div>
 
-    <!-- Müzikli Koreografiler -->
-    <div class="section-title">Müzikli Danslar</div>
-    <div class="dance-grid">
-      <!-- Smooth Criminal -->
-      <button class="btn-dance" id="btn-smooth" onclick="playChoreography('smoothCriminal', 'audio-smooth', this)">
-        <div class="dance-info">
-          <span class="dance-title">Smooth Criminal</span>
-          <span class="dance-artist">Michael Jackson (121 BPM)</span>
+    <!-- DANS MENÜSÜ -->
+    <span class="label">Müzikli Koreografiler</span>
+    <div class="dance-list">
+      
+      <!-- 1. Smooth Criminal -->
+      <button class="btn-dance" id="btn-smooth" onclick="startChoreography('smoothCriminal', 'smooth', this)">
+        <div>
+          <div class="dance-title">1. Smooth Criminal</div>
+          <div class="dance-sub">Michael Jackson • 121 BPM</div>
         </div>
-        <span class="dance-icon">🎩</span>
+        <div class="dance-icon">🎩</div>
       </button>
 
-      <!-- Party Rock (Shuffle) -->
-      <button class="btn-dance" id="btn-shuffle" onclick="playChoreography('shuffle', 'audio-shuffle', this)">
-        <div class="dance-info">
-          <span class="dance-title">Party Rock Shuffle</span>
-          <span class="dance-artist">LMFAO (130 BPM)</span>
+      <!-- 2. Party Rock Shuffle -->
+      <button class="btn-dance" id="btn-shuffle" onclick="startChoreography('shuffle', 'shuffle', this)">
+        <div>
+          <div class="dance-title">2. Party Rock (Shuffle)</div>
+          <div class="dance-sub">LMFAO • 130 BPM</div>
         </div>
-        <span class="dance-icon">👟</span>
+        <div class="dance-icon">👟</div>
       </button>
 
-      <!-- Single Ladies -->
-      <button class="btn-dance" id="btn-single" onclick="playChoreography('singleLadies', 'audio-single', this)">
-        <div class="dance-info">
-          <span class="dance-title">Single Ladies</span>
-          <span class="dance-artist">Beyoncé (97 BPM)</span>
+      <!-- 3. Single Ladies -->
+      <button class="btn-dance" id="btn-single" onclick="startChoreography('singleLadies', 'single', this)">
+        <div>
+          <div class="dance-title">3. Single Ladies</div>
+          <div class="dance-sub">Beyoncé • 97 BPM</div>
         </div>
-        <span class="dance-icon">💍</span>
+        <div class="dance-icon">💍</div>
       </button>
+
     </div>
 
-    <!-- Hızlı Jestler -->
-    <div class="section-title">Jestler & Modlar</div>
-    <div class="gestures-grid">
-      <button class="btn-gesture" onclick="sendCommand('happy')"><span>😊</span>Mutlu</button>
-      <button class="btn-gesture" onclick="sendCommand('sad')"><span>😢</span>Üzgün</button>
-      <button class="btn-gesture" onclick="sendCommand('victory')"><span>✌️</span>Zafer</button>
-      <button class="btn-gesture" onclick="sendCommand('avoidance')"><span>🛡️</span>Otonom</button>
+    <!-- Jestler -->
+    <span class="label">Hareketler & Jestler</span>
+    <div class="gesture-row">
+      <button class="btn-ges" onclick="send('happy')"><span>😊</span>Mutlu</button>
+      <button class="btn-ges" onclick="send('victory')"><span>✌️</span>Zafer</button>
+      <button class="btn-ges" onclick="send('fart')"><span>💨</span>Gaz</button>
+      <button class="btn-ges" onclick="send('avoidance')"><span>🛡️</span>Engel</button>
     </div>
   </div>
 
-  <!-- Ses Dosyaları -->
-  <!-- Kendi mp3 dosyalarınızı bu HTML dosyasıyla aynı klasöre koyup isimleri eşitleyebilirsiniz -->
-  <audio id="audio-smooth" src="smooth_criminal.mp3" preload="auto"></audio>
-  <audio id="audio-shuffle" src="party_rock.mp3" preload="auto"></audio>
-  <audio id="audio-single" src="single_ladies.mp3" preload="auto"></audio>
-
   <script>
-    let bluetoothDevice = null;
-    let rxTxCharacteristic = null;
-    let currentAudio = null;
-    let activeDanceButton = null;
+    let device = null;
+    let txChar = null;
+    let audioCtx = null;
+    let isSynthPlaying = false;
+    let activeBtn = null;
 
-    // Standart BLE Nordic UART Servisleri (HM-10, ESP32 BLE vb.)
-    const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-    const UART_TX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+    const UART_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+    const UART_TX      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
 
-    async function toggleConnect() {
-      if (bluetoothDevice && bluetoothDevice.gatt.connected) {
-        bluetoothDevice.gatt.disconnect();
+    async function toggleBT() {
+      if (device && device.gatt.connected) {
+        device.gatt.disconnect();
         return;
       }
-
       try {
-        updateStatus("Bağlanıyor...", false);
-        bluetoothDevice = await navigator.bluetooth.requestDevice({
+        device = await navigator.bluetooth.requestDevice({
           acceptAllDevices: true,
-          optionalServices: [UART_SERVICE_UUID, "0000ffe0-0000-1000-8000-00805f9b34fb"]
+          optionalServices: [UART_SERVICE, "0000ffe0-0000-1000-8000-00805f9b34fb"]
         });
 
-        bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
-        const server = await bluetoothDevice.gatt.connect();
-        
+        device.addEventListener('gattserverdisconnected', onDisconnect);
+        const server = await device.gatt.connect();
+
         let service;
         try {
-          service = await server.getPrimaryService(UART_SERVICE_UUID);
-          rxTxCharacteristic = await service.getCharacteristic(UART_TX_UUID);
+          service = await server.getPrimaryService(UART_SERVICE);
+          txChar = await service.getCharacteristic(UART_TX);
         } catch(e) {
-          // Alternatif HC-08 / HM-10 UUID
           service = await server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
-          rxTxCharacteristic = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
+          txChar = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
         }
 
-        updateStatus("Bağlandı", true);
+        document.getElementById('dot').classList.add('on');
+        document.getElementById('statusTxt').innerText = "Bağlandı";
         document.getElementById('btnConnect').innerText = "Kopart";
-      } catch (error) {
-        console.log("Bağlantı hatası: " + error);
-        updateStatus("Bağlantı Hatası", false);
-      }
-    }
-
-    function onDisconnected() {
-      updateStatus("Bağlantı Kesildi", false);
-      document.getElementById('btnConnect').innerText = "Bağlan";
-      rxTxCharacteristic = null;
-      stopMusic();
-    }
-
-    function updateStatus(text, isConnected) {
-      document.getElementById('statusText').innerText = text;
-      const dot = document.getElementById('statusDot');
-      if (isConnected) dot.classList.add('connected');
-      else dot.classList.remove('connected');
-    }
-
-    async function sendCommand(cmd) {
-      console.log("Komut:", cmd);
-      if (!rxTxCharacteristic) return;
-      try {
-        const encoder = new TextEncoder();
-        await rxTxCharacteristic.writeValue(encoder.encode(cmd + "\n"));
       } catch (err) {
-        console.error("Yazma Hatası:", err);
+        console.log("Hata: " + err);
       }
     }
 
-    // Müzikli Dans Yürütücü
-    function playChoreography(cmd, audioId, btnElement) {
+    function onDisconnect() {
+      document.getElementById('dot').classList.remove('on');
+      document.getElementById('statusTxt').innerText = "Bağlantı Yok";
+      document.getElementById('btnConnect').innerText = "Bağlan";
+      txChar = null;
+      stopMusic();
+    }
+
+    async function send(cmd) {
+      if (!txChar) return;
+      try {
+        const enc = new TextEncoder();
+        await txChar.writeValue(enc.encode(cmd + "\n"));
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    // ==========================================
+    // DAHİLİ SYNTHESIZER (HARİCİ MP3 GEREKTİRMEZ)
+    // ==========================================
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, duration, type = 'sawtooth') {
+      if (!isSynthPlaying) return;
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    }
+
+    // Notalar tablosu (Hz)
+    const NOTES = {
+      C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+      C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77
+    };
+
+    // Melodiler
+    const MELODIES = {
+      smooth: [
+        { f: NOTES.A4, d: 0.2 }, { f: NOTES.A4, d: 0.2 }, { f: NOTES.A4, d: 0.2 }, { f: NOTES.G4, d: 0.2 },
+        { f: NOTES.A4, d: 0.2 }, { f: NOTES.C5, d: 0.3 }, { f: NOTES.B4, d: 0.2 }, { f: NOTES.G4, d: 0.3 }
+      ],
+      shuffle: [
+        { f: NOTES.E4, d: 0.15 }, { f: NOTES.G4, d: 0.15 }, { f: NOTES.A4, d: 0.15 }, { f: NOTES.E4, d: 0.15 },
+        { f: NOTES.D4, d: 0.15 }, { f: NOTES.E4, d: 0.25 }, { f: NOTES.G4, d: 0.25 }
+      ],
+      single: [
+        { f: NOTES.C5, d: 0.2 }, { f: NOTES.A4, d: 0.2 }, { f: NOTES.C5, d: 0.2 }, { f: NOTES.D5, d: 0.3 },
+        { f: NOTES.C5, d: 0.2 }, { f: NOTES.A4, d: 0.4 }
+      ]
+    };
+
+    function startMelodyLoop(trackKey) {
+      isSynthPlaying = true;
+      const track = MELODIES[trackKey];
+      let step = 0;
+
+      function nextNote() {
+        if (!isSynthPlaying) return;
+        const current = track[step];
+        playTone(current.f, current.d);
+        step = (step + 1) % track.length;
+        setTimeout(nextNote, current.d * 1000 + 50);
+      }
+      nextNote();
+    }
+
+    function startChoreography(cmd, melodyKey, btn) {
       stopMusic();
 
-      // Müziği çal
-      currentAudio = document.getElementById(audioId);
-      if (currentAudio) {
-        currentAudio.currentTime = 0;
-        currentAudio.play().catch(e => console.log("Otomatik oynatma kısıtlandı:", e));
-      }
+      activeBtn = btn;
+      activeBtn.classList.add('playing');
 
-      // Buton stili
-      activeDanceButton = btnElement;
-      activeDanceButton.classList.add('playing');
+      // 1. Melodiyi başlat
+      startMelodyLoop(melodyKey);
 
-      // Robota komutu gönder
-      sendCommand(cmd);
-
-      // Şarkı bitince temizle
-      currentAudio.onended = () => {
-        stopAll();
-      };
+      // 2. Robota komutu gönder
+      send(cmd);
     }
 
     function stopMusic() {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        currentAudio = null;
-      }
-      if (activeDanceButton) {
-        activeDanceButton.classList.remove('playing');
-        activeDanceButton = null;
+      isSynthPlaying = false;
+      if (activeBtn) {
+        activeBtn.classList.remove('playing');
+        activeBtn = null;
       }
     }
 
     function stopAll() {
       stopMusic();
-      sendCommand('stop');
+      send('stop');
     }
   </script>
 </body>
