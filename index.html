@@ -235,8 +235,8 @@
     </div>
   </div>
 
-  <!-- MP3 Ses Dosyaları -->
-  <audio id="smoothAudio" src="smooth.mp3" preload="auto"></audio>
+  <!-- Ses Dosyaları (Görselinizdeki dosya adıyla tam uyumlu) -->
+  <audio id="smoothAudio" src="smooth.MP3" preload="auto"></audio>
   <audio id="shuffleAudio" src="party_rock.mp3" preload="auto"></audio>
   <audio id="singleAudio" src="single_ladies.mp3" preload="auto"></audio>
 
@@ -246,51 +246,52 @@
     let bluetoothDevice = null;
     let bleCharacteristic = null;
 
-    const smoothAudio = document.getElementById('smoothAudio');
-    const shuffleAudio = document.getElementById('shuffleAudio');
-    const singleAudio = document.getElementById('singleAudio');
+    function getAudio(id) {
+      return document.getElementById(id);
+    }
 
-    // Müzik Durdurucu
     function tumMuzikleriDurdur() {
-      [smoothAudio, shuffleAudio, singleAudio].forEach(audio => {
-        if (audio) {
-          audio.pause();
-          audio.currentTime = 0;
+      ['smoothAudio', 'shuffleAudio', 'singleAudio'].forEach(id => {
+        const el = getAudio(id);
+        if (el) {
+          el.pause();
+          el.currentTime = 0;
         }
       });
     }
 
-    // Şarkı bitince robota stop gönder
-    [smoothAudio, shuffleAudio, singleAudio].forEach(audio => {
-      if (audio) {
-        audio.onended = () => { komutGonder('stop'); };
-      }
+    // Şarkı bitiminde robota stop yollama
+    window.addEventListener('DOMContentLoaded', () => {
+      ['smoothAudio', 'shuffleAudio', 'singleAudio'].forEach(id => {
+        const el = getAudio(id);
+        if (el) {
+          el.addEventListener('ended', () => {
+            komutGonder('stop');
+          });
+        }
+      });
     });
 
-    // Bağlantı Yönetimi (Web Serial / Web Bluetooth Çift Destekli)
     async function toggleConnect() {
       if (writer || bleCharacteristic) {
         disconnectAll();
         return;
       }
 
-      // 1. Önce Web Serial (Bluetooth SPP / COM Port) Dene
+      // 1. Web Serial API (Bluetooth SPP / COM Port)
       if ("serial" in navigator) {
         try {
           port = await navigator.serial.requestPort();
           await port.open({ baudRate: 9600 });
-          const textEncoder = new TextEncoderStream();
-          textEncoder.readable.pipeTo(port.writable);
-          writer = textEncoder.writable.getWriter();
-
-          setConnectedState("Seri Port (BT SPP)");
+          writer = port.writable.getWriter();
+          setConnectedState("Seri Port (BT)");
           return;
         } catch (err) {
-          console.log("Web Serial iptal veya başarısız, BLE deneniyor...", err);
+          console.log("Web Serial denenemedi, BLE deneniyor...", err);
         }
       }
 
-      // 2. Web Bluetooth BLE Alternatifi
+      // 2. Web Bluetooth BLE API
       if ("bluetooth" in navigator) {
         try {
           bluetoothDevice = await navigator.bluetooth.requestDevice({
@@ -313,21 +314,13 @@
             bleCharacteristic = await service.getCharacteristic("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
           }
 
-          // BLE için writer sarmalayıcı nesnesi
-          writer = {
-            write: async (data) => {
-              const enc = new TextEncoder();
-              await bleCharacteristic.writeValue(enc.encode(data));
-            }
-          };
-
-          setConnectedState(bluetoothDevice.name || "Otto BLE");
+          setConnectedState(bluetoothDevice.name || "Otto Robot");
         } catch (err) {
           console.error("BLE Bağlantı Hatası:", err);
           disconnectAll();
         }
       } else {
-        alert("Tarayıcınız Bluetooth bağlantısını desteklemiyor. Lütfen Chrome kullanın.");
+        alert("Tarayıcınız Web Bluetooth/Serial API desteklemiyor. Lütfen güncel Chrome kullanın.");
       }
     }
 
@@ -342,11 +335,17 @@
       btn.className = "btn-disconnect";
     }
 
-    function disconnectAll() {
+    async function disconnectAll() {
       tumMuzikleriDurdur();
 
-      if (writer && port) {
-        try { writer.releaseLock(); port.close(); } catch(e) {}
+      if (writer) {
+        try {
+          await writer.close();
+          writer.releaseLock();
+        } catch(e) {}
+      }
+      if (port) {
+        try { await port.close(); } catch(e) {}
       }
       if (bluetoothDevice && bluetoothDevice.gatt.connected) {
         bluetoothDevice.gatt.disconnect();
@@ -367,48 +366,48 @@
       btn.className = "btn-connect";
     }
 
-    // Robota Komut Gönderme ve Müzik Yönetim Fonksiyonu
     async function komutGonder(anahtar) {
-      // 1. Önce ses kontrolü (Kullanıcı tıklaması doğrudan sesi tetikler)
       tumMuzikleriDurdur();
 
-      let calinacakAudio = null;
-      let dosyaAdi = "";
+      // Müzik çalma kontrolü
+      let audioId = "";
+      if (anahtar === 'smoothCriminal') audioId = 'smoothAudio';
+      else if (anahtar === 'shuffle') audioId = 'shuffleAudio';
+      else if (anahtar === 'singleLadies') audioId = 'singleAudio';
 
-      if (anahtar === 'smoothCriminal') {
-        calinacakAudio = smoothAudio;
-        dosyaAdi = "smooth.mp3";
-      } else if (anahtar === 'shuffle') {
-        calinacakAudio = shuffleAudio;
-        dosyaAdi = "party_rock.mp3";
-      } else if (anahtar === 'singleLadies') {
-        calinacakAudio = singleAudio;
-        dosyaAdi = "single_ladies.mp3";
-      }
-
-      if (calinacakAudio) {
-        calinacakAudio.currentTime = 0;
-        const playPromise = calinacakAudio.play();
-        
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.error("Müzik Çalma Hatası:", error);
-            alert("Müzik çalınamadı. Hata: " + error.message + "\n\nLütfen '" + dosyaAdi + "' dosyasının ana dizinde olduğundan emin olun.");
-          });
+      if (audioId) {
+        const audioEl = getAudio(audioId);
+        if (audioEl) {
+          audioEl.currentTime = 0;
+          const playPromise = audioEl.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.warn("Otomatik oynatma engeli veya dosya yok:", err);
+            });
+          }
         }
       }
 
-      // 2. Bluetooth Seri Port Kontrolü
-      if (!writer) {
-        alert("Robot bağlı değil! Lütfen önce sağ üstteki Bluetooth simgesine tıklayıp robota bağlanın.");
+      // Robot bağlantı kontrolü
+      if (!writer && !bleCharacteristic) {
+        if (anahtar !== 'stop') {
+          alert("Robot bağlı değil! Önce 'Bağlan' butonuna basarak eşleştirin.");
+        }
         return;
       }
 
       try {
         const secilenHiz = document.getElementById('speedRange').value;
         const paket = anahtar + secilenHiz + "\n";
-        await writer.write(paket);
-        console.log("Gönderilen Veri:", paket.trim());
+        const encoder = new TextEncoder();
+        const data = encoder.encode(paket);
+
+        if (writer) {
+          await writer.write(data);
+        } else if (bleCharacteristic) {
+          await bleCharacteristic.writeValue(data);
+        }
+        console.log("Gönderildi:", paket.trim());
       } catch (err) {
         console.error("Veri Gönderme Hatası:", err);
       }
