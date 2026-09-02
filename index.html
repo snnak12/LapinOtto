@@ -1,62 +1,418 @@
-// Ses Nesneleri Tanımlamaları
-const smoothAudio = document.getElementById('smoothAudio');
-const shuffleAudio = document.getElementById('shuffleAudio');
-const singleAudio = document.getElementById('singleAudio');
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Otto Robot Web Controller</title>
+  <style>
+    body {
+      background-color: #2c3e50;
+      color: #ecf0f1;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 15px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
-// Robota Komut Gönderme ve Müzik Yönetim Fonksiyonu
-async function komutGonder(anahtar) {
-  // Tüm müzikleri durduran yardımcı fonksiyon
-  function tumMuzikleriDurdur() {
-    [smoothAudio, shuffleAudio, singleAudio].forEach(audio => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    });
-  }
+    h1 {
+      margin-top: 5px;
+      margin-bottom: 15px;
+      font-size: 24px;
+      color: #1abc9c;
+    }
 
-  // 1. Önce ses kontrolü (Kullanıcı tıklaması doğrudan sesi tetikler)
-  tumMuzikleriDurdur();
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #34495e;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
 
-  let calinacakAudio = null;
-  let dosyaAdi = "";
+    .connection-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2c3e50;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
 
-  if (anahtar === 'smoothCriminal') {
-    calinacakAudio = smoothAudio;
-    dosyaAdi = "smooth.mp3";
-  } else if (anahtar === 'shuffle') {
-    calinacakAudio = shuffleAudio;
-    dosyaAdi = "party_rock.mp3";
-  } else if (anahtar === 'singleLadies') {
-    calinacakAudio = singleAudio;
-    dosyaAdi = "single_ladies.mp3";
-  }
+    .status {
+      font-size: 14px;
+      font-weight: bold;
+    }
 
-  // Seçilen dans müziğini oynat
-  if (calinacakAudio) {
-    calinacakAudio.currentTime = 0;
-    const playPromise = calinacakAudio.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.error("Müzik Çalma Hatası:", error);
-        alert("Müzik çalınamadı. Hata: " + error.message + "\n\nLütfen '" + dosyaAdi + "' dosyasının ana dizinde olduğundan emin olun.");
+    .connected { color: #2ecc71; }
+    .disconnected { color: #e74c3c; }
+
+    button {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 8px;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .btn-connect {
+      background: #1abc9c;
+      color: white;
+      padding: 8px 15px;
+      font-size: 14px;
+    }
+
+    .btn-disconnect {
+      background: #e74c3c;
+      color: white;
+      padding: 8px 15px;
+      font-size: 14px;
+    }
+
+    .speed-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    .speed-panel label {
+      font-size: 13px;
+      color: #bdc3c7;
+      font-weight: bold;
+    }
+
+    .speed-panel input {
+      width: 100%;
+      accent-color: #1abc9c;
+    }
+
+    .dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .btn-control {
+      background: #7f8c8d;
+      color: white;
+      font-size: 22px;
+      height: 60px;
+    }
+
+    .btn-control:active {
+      background: #1abc9c;
+    }
+
+    .btn-stop {
+      background: #e74c3c;
+      font-size: 16px;
+    }
+
+    .btn-stop:active {
+      background: #c0392b;
+    }
+
+    .section-label {
+      font-size: 14px;
+      color: #bdc3c7;
+      text-transform: uppercase;
+      margin: 15px 0 8px 0;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    .dance-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .btn-dance {
+      background: #2980b9;
+      color: white;
+      padding: 12px;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-dance:active {
+      background: #3498db;
+    }
+
+    .gestures-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .btn-gesture {
+      background: #4a6278;
+      color: white;
+      padding: 10px 4px;
+      font-size: 12px;
+    }
+
+    .btn-gesture:active {
+      background: #1abc9c;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>OTTO ROBOT</h1>
+
+    <!-- Bağlantı Alanı -->
+    <div class="connection-panel">
+      <div>
+        <div id="deviceName" style="font-size: 13px; color: #bdc3c7;">Cihaz: Seçilmedi</div>
+        <div id="statusText" class="status disconnected">Bağlantı Yok</div>
+      </div>
+      <button id="btnConnect" class="btn-connect" onclick="toggleConnect()">Bağlan</button>
+    </div>
+
+    <!-- Hız Ayarı -->
+    <div class="speed-panel">
+      <label for="speedRange">Hız Kademesi: <span id="speedValue">2</span></label>
+      <input type="range" id="speedRange" min="0" max="5" value="2" oninput="document.getElementById('speedValue').innerText = this.value">
+    </div>
+
+    <!-- Yön Kumandası -->
+    <div class="dpad-grid">
+      <div></div>
+      <button class="btn-control" onpointerdown="komutGonder('forward')" onpointerup="komutGonder('stop')">▲</button>
+      <div></div>
+
+      <button class="btn-control" onpointerdown="komutGonder('left')" onpointerup="komutGonder('stop')">◀</button>
+      <button class="btn-control btn-stop" onclick="komutGonder('stop')">DUR</button>
+      <button class="btn-control" onpointerdown="komutGonder('right')" onpointerup="komutGonder('stop')">▶</button>
+
+      <div></div>
+      <button class="btn-control" onpointerdown="komutGonder('backward')" onpointerup="komutGonder('stop')">▼</button>
+      <div></div>
+    </div>
+
+    <!-- Müzikli Danslar -->
+    <div class="section-label">Müzikli Koreografiler</div>
+    <div class="dance-panel">
+      <button class="btn-dance" onclick="komutGonder('smoothCriminal')">
+        <span>🎩 Smooth Criminal</span>
+        <span style="font-size: 12px; color: #ecf0f1;">MJ (121 BPM)</span>
+      </button>
+
+      <button class="btn-dance" onclick="komutGonder('shuffle')">
+        <span>👟 Party Rock (Shuffle)</span>
+        <span style="font-size: 12px; color: #ecf0f1;">LMFAO (130 BPM)</span>
+      </button>
+
+      <button class="btn-dance" onclick="komutGonder('singleLadies')">
+        <span>💍 Single Ladies</span>
+        <span style="font-size: 12px; color: #ecf0f1;">Beyoncé (97 BPM)</span>
+      </button>
+    </div>
+
+    <!-- Jestler ve Modlar -->
+    <div class="section-label">Jestler & Otonom</div>
+    <div class="gestures-grid">
+      <button class="btn-gesture" onclick="komutGonder('happy')">Mutlu</button>
+      <button class="btn-gesture" onclick="komutGonder('sad')">Üzgün</button>
+      <button class="btn-gesture" onclick="komutGonder('victory')">Zafer</button>
+      <button class="btn-gesture" onclick="komutGonder('avoidance')">Engel</button>
+    </div>
+  </div>
+
+  <!-- MP3 Ses Dosyaları -->
+  <audio id="smoothAudio" src="smooth.mp3" preload="auto"></audio>
+  <audio id="shuffleAudio" src="party_rock.mp3" preload="auto"></audio>
+  <audio id="singleAudio" src="single_ladies.mp3" preload="auto"></audio>
+
+  <script>
+    let port = null;
+    let writer = null;
+    let bluetoothDevice = null;
+    let bleCharacteristic = null;
+
+    const smoothAudio = document.getElementById('smoothAudio');
+    const shuffleAudio = document.getElementById('shuffleAudio');
+    const singleAudio = document.getElementById('singleAudio');
+
+    // Müzik Durdurucu
+    function tumMuzikleriDurdur() {
+      [smoothAudio, shuffleAudio, singleAudio].forEach(audio => {
+        if (audio) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
       });
     }
-  }
 
-  // 2. Bluetooth Seri Port Kontrolü
-  if (!writer) {
-    alert("Robot bağlı değil! Lütfen önce sağ üstteki Bluetooth simgesine tıklayıp robota bağlanın.");
-    return;
-  }
+    // Şarkı bitince robota stop gönder
+    [smoothAudio, shuffleAudio, singleAudio].forEach(audio => {
+      if (audio) {
+        audio.onended = () => { komutGonder('stop'); };
+      }
+    });
 
-  try {
-    const secilenHiz = document.getElementById('speedRange').value;
-    const paket = anahtar + secilenHiz + "\n";
-    await writer.write(paket);
-    console.log("Gönderilen Veri:", paket.trim());
-  } catch (err) {
-    console.error("Veri Gönderme Hatası:", err);
-  }
-}
+    // Bağlantı Yönetimi (Web Serial / Web Bluetooth Çift Destekli)
+    async function toggleConnect() {
+      if (writer || bleCharacteristic) {
+        disconnectAll();
+        return;
+      }
+
+      // 1. Önce Web Serial (Bluetooth SPP / COM Port) Dene
+      if ("serial" in navigator) {
+        try {
+          port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 9600 });
+          const textEncoder = new TextEncoderStream();
+          textEncoder.readable.pipeTo(port.writable);
+          writer = textEncoder.writable.getWriter();
+
+          setConnectedState("Seri Port (BT SPP)");
+          return;
+        } catch (err) {
+          console.log("Web Serial iptal veya başarısız, BLE deneniyor...", err);
+        }
+      }
+
+      // 2. Web Bluetooth BLE Alternatifi
+      if ("bluetooth" in navigator) {
+        try {
+          bluetoothDevice = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: [
+              "0000ffe0-0000-1000-8000-00805f9b34fb",
+              "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
+            ]
+          });
+
+          bluetoothDevice.addEventListener('gattserverdisconnected', disconnectAll);
+          const server = await bluetoothDevice.gatt.connect();
+
+          let service;
+          try {
+            service = await server.getPrimaryService("0000ffe0-0000-1000-8000-00805f9b34fb");
+            bleCharacteristic = await service.getCharacteristic("0000ffe1-0000-1000-8000-00805f9b34fb");
+          } catch(e) {
+            service = await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+            bleCharacteristic = await service.getCharacteristic("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
+          }
+
+          // BLE için writer sarmalayıcı nesnesi
+          writer = {
+            write: async (data) => {
+              const enc = new TextEncoder();
+              await bleCharacteristic.writeValue(enc.encode(data));
+            }
+          };
+
+          setConnectedState(bluetoothDevice.name || "Otto BLE");
+        } catch (err) {
+          console.error("BLE Bağlantı Hatası:", err);
+          disconnectAll();
+        }
+      } else {
+        alert("Tarayıcınız Bluetooth bağlantısını desteklemiyor. Lütfen Chrome kullanın.");
+      }
+    }
+
+    function setConnectedState(name) {
+      document.getElementById('deviceName').innerText = "Cihaz: " + name;
+      const st = document.getElementById('statusText');
+      st.innerText = "Bağlandı";
+      st.className = "status connected";
+
+      const btn = document.getElementById('btnConnect');
+      btn.innerText = "Kopart";
+      btn.className = "btn-disconnect";
+    }
+
+    function disconnectAll() {
+      tumMuzikleriDurdur();
+
+      if (writer && port) {
+        try { writer.releaseLock(); port.close(); } catch(e) {}
+      }
+      if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+        bluetoothDevice.gatt.disconnect();
+      }
+
+      port = null;
+      writer = null;
+      bluetoothDevice = null;
+      bleCharacteristic = null;
+
+      document.getElementById('deviceName').innerText = "Cihaz: Seçilmedi";
+      const st = document.getElementById('statusText');
+      st.innerText = "Bağlantı Yok";
+      st.className = "status disconnected";
+
+      const btn = document.getElementById('btnConnect');
+      btn.innerText = "Bağlan";
+      btn.className = "btn-connect";
+    }
+
+    // Robota Komut Gönderme ve Müzik Yönetim Fonksiyonu
+    async function komutGonder(anahtar) {
+      // 1. Önce ses kontrolü (Kullanıcı tıklaması doğrudan sesi tetikler)
+      tumMuzikleriDurdur();
+
+      let calinacakAudio = null;
+      let dosyaAdi = "";
+
+      if (anahtar === 'smoothCriminal') {
+        calinacakAudio = smoothAudio;
+        dosyaAdi = "smooth.mp3";
+      } else if (anahtar === 'shuffle') {
+        calinacakAudio = shuffleAudio;
+        dosyaAdi = "party_rock.mp3";
+      } else if (anahtar === 'singleLadies') {
+        calinacakAudio = singleAudio;
+        dosyaAdi = "single_ladies.mp3";
+      }
+
+      if (calinacakAudio) {
+        calinacakAudio.currentTime = 0;
+        const playPromise = calinacakAudio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error("Müzik Çalma Hatası:", error);
+            alert("Müzik çalınamadı. Hata: " + error.message + "\n\nLütfen '" + dosyaAdi + "' dosyasının ana dizinde olduğundan emin olun.");
+          });
+        }
+      }
+
+      // 2. Bluetooth Seri Port Kontrolü
+      if (!writer) {
+        alert("Robot bağlı değil! Lütfen önce sağ üstteki Bluetooth simgesine tıklayıp robota bağlanın.");
+        return;
+      }
+
+      try {
+        const secilenHiz = document.getElementById('speedRange').value;
+        const paket = anahtar + secilenHiz + "\n";
+        await writer.write(paket);
+        console.log("Gönderilen Veri:", paket.trim());
+      } catch (err) {
+        console.error("Veri Gönderme Hatası:", err);
+      }
+    }
+  </script>
+</body>
+</html>
